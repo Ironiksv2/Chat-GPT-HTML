@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>m3u8 Playlist Generator</title>
+</head>
+<body>
+  <textarea id="input" placeholder="Paste your links here"></textarea>
+  <button onclick="generatePlaylist()">Generate Playlist</button>
+  <div id="output"></div>
+  <button onclick="copyPlaylist()">Copy Playlist</button>
+  
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    function generatePlaylist() {
+      var m3u8FileURL = "https://raw.githubusercontent.com/Ironiksv2/project-Live/main/M3u8%20Generator.m3u8";
+      var userLinks = $("#input").val().trim().split("\n");
+      var playlistA = [];
+      var playlistB = [];
+      var fileCounter = 1;
+      
+      // Retrieve data from the GitHub m3u8 file
+      $.get(m3u8FileURL, function(data) {
+        var m3u8Lines = data.split("\n");
+        
+        for (var i = 0; i < m3u8Lines.length; i++) {
+          var line = m3u8Lines[i];
+          if (line.startsWith("#EXTINF:")) {
+            playlistA.push(line);
+          }
+        }
+        
+        // Generate playlist entries for user-provided links
+        for (var j = 0; j < userLinks.length; j++) {
+          var link = userLinks[j].trim();
+          if (link !== "") {
+            var fileName = "file" + fileCounter + ".m3u8";
+            playlistA.push("#EXTINF:-1," + fileName);
+            playlistA.push(link);
+            fileCounter++;
+          }
+        }
+        
+        // Generate the complete playlist
+        playlistB.push("#EXTM3U");
+        playlistB = playlistB.concat(playlistA);
+        
+        // Display the generated playlist
+        var playlistOutput = playlistB.join("\n");
+        $("#output").text(playlistOutput);
+      });
+    }
+    
+    function copyPlaylist() {
+      var playlistText = $("#output").text();
+      navigator.clipboard.writeText(playlistText)
+        .then(function() {
+          alert("Playlist copied to clipboard!");
+        })
+        .catch(function(error) {
+          console.error("Error copying playlist:", error);
+        });
+    }
+  </script>
+</body>
+</html>
